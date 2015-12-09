@@ -491,47 +491,47 @@ public:
 
 
 template< class T1, class T2, class... Args >
-std::shared_ptr< Difference< T1, T2 > > make_difference(const T1& left, const T2& right, Args&& ...args)
+std::shared_ptr< internal::Combined< T1, T2, internal::Combination::difference > > make_difference(const T1& left, const T2& right, Args&& ...args)
 {
-  return std::make_shared< Difference< T1, T2 > >(left, right, std::forward< Args >(args)...);
+  return std::make_shared< internal::Combined< T1, T2, internal::Combination::difference > >(left, right, std::forward< Args >(args)...);
 }
 
 template< class T1, class T2, class... Args >
-std::shared_ptr< Difference< T1, T2 > > make_difference(std::shared_ptr< T1 > left,
+std::shared_ptr< internal::Combined< T1, T2, internal::Combination::difference > > make_difference(std::shared_ptr< T1 > left,
                                                         std::shared_ptr< T2 > right,
                                                         Args&& ...args)
 {
-  return std::make_shared< Difference< T1, T2 > >(left, right, std::forward< Args >(args)...);
+  return std::make_shared< internal::Combined< T1, T2, internal::Combination::difference > >(left, right, std::forward< Args >(args)...);
 }
 
 
 template< class T1, class T2, class... Args >
-std::shared_ptr< Sum< T1, T2 > > make_sum(const T1& left, const T2& right, Args&& ...args)
+std::shared_ptr< internal::Combined< T1, T2, internal::Combination::sum > > make_sum(const T1& left, const T2& right, Args&& ...args)
 {
-  return std::make_shared< Sum< T1, T2 > >(left, right, std::forward< Args >(args)...);
+  return std::make_shared< internal::Combined< T1, T2, internal::Combination::sum > >(left, right, std::forward< Args >(args)...);
 }
 
 template< class T1, class T2, class... Args >
-std::shared_ptr< Sum< T1, T2 > > make_sum(std::shared_ptr< T1 > left,
+std::shared_ptr< internal::Combined< T1, T2, internal::Combination::sum > > make_sum(std::shared_ptr< T1 > left,
                                           std::shared_ptr< T2 > right,
                                           Args&& ...args)
 {
-  return std::make_shared< Sum< T1, T2 > >(left, right, std::forward< Args >(args)...);
+  return std::make_shared< internal::Combined< T1, T2, internal::Combination::sum > >(left, right, std::forward< Args >(args)...);
 }
 
 
 template< class T1, class T2, class... Args >
-std::shared_ptr< Product< T1, T2 > > make_product(const T1& left, const T2& right, Args&& ...args)
+std::shared_ptr< internal::Combined< T1, T2, internal::Combination::product > > make_product(const T1& left, const T2& right, Args&& ...args)
 {
-  return std::make_shared< Product< T1, T2 > >(left, right, std::forward< Args >(args)...);
+  return std::make_shared< internal::Combined< T1, T2, internal::Combination::product > >(left, right, std::forward< Args >(args)...);
 }
 
 template< class T1, class T2, class... Args >
-std::shared_ptr< Product< T1, T2 > > make_product(std::shared_ptr< T1 > left,
+std::shared_ptr< internal::Combined< T1, T2, internal::Combination::product > > make_product(std::shared_ptr< T1 > left,
                                                   std::shared_ptr< T2 > right,
                                                   Args&& ...args)
 {
-  return std::make_shared< Product< T1, T2 > >(left, right, std::forward< Args >(args)...);
+  return std::make_shared< internal::Combined< T1, T2, internal::Combination::product > >(left, right, std::forward< Args >(args)...);
 }
 
 
