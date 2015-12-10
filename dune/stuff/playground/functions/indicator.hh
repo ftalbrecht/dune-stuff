@@ -12,6 +12,7 @@
 
 #include <dune/stuff/common/type_utils.hh>
 
+#include <dune/stuff/common/float_cmp.hh>
 #include <dune/stuff/common/fvector.hh>
 #include <dune/stuff/common/string.hh>
 #include <dune/stuff/common/memory.hh>
@@ -24,20 +25,20 @@ namespace Stuff {
 namespace Functions {
 
 
-template< class E, class D, int d, class R, int r, int rC = 1 >
-class Indicator
+template< class E, class D, size_t d, class R, size_t r, size_t rC = 1 >
+class DomainIndicator
   : public LocalizableFunctionInterface< E, D, d, R, r, rC >
 {
-  Indicator() { static_assert(AlwaysFalse< E >::value, "Not available for these dimensions!"); }
+  DomainIndicator() { static_assert(AlwaysFalse< E >::value, "Not available for these dimensions!"); }
 };
 
 
-template< class E, class D, int d, class R >
-class Indicator< E, D, d, R, 1 >
+template< class E, class D, size_t d, class R >
+class DomainIndicator< E, D, d, R, 1 >
   : public LocalizableFunctionInterface< E, D, d, R, 1 >
 {
   typedef LocalizableFunctionInterface< E, D, d, R, 1 > BaseType;
-  typedef Indicator< E, D, d, R, 1 >                    ThisType;
+  typedef DomainIndicator< E, D, d, R, 1 >                    ThisType;
 
   class Localfunction
     : public LocalfunctionInterface< E, D, d, R, 1 >
@@ -87,7 +88,7 @@ public:
 
   static std::string static_id()
   {
-    return BaseType::static_id() + ".indicator";
+    return BaseType::static_id() + ".domainindicator";
   }
 
   static Common::Configuration default_config(const std::string sub_name = "")
@@ -138,24 +139,19 @@ public:
     return Common::make_unique< ThisType >(values, cfg.get("name", def_cfg.get< std::string >("name")));
   } // ... create(...)
 
-  Indicator(const std::vector< std::tuple< DomainType, DomainType, R > >& values,
-            const std::string name = "indicator")
+  DomainIndicator(const std::vector< std::tuple< DomainType, DomainType, R > >& values,
+                  const std::string name_in = default_config().get< std::string >("name"))
     : values_(values)
-    , name_(name)
+    , name_(name_in)
   {}
 
-  Indicator(const std::vector< std::pair< std::pair< Common::FieldVector< D, d >, Common::FieldVector< D, d > >, R > >& values,
-            const std::string name = "indicator")
+  DomainIndicator(const std::vector< std::pair< std::pair< Common::FieldVector< D, d >, Common::FieldVector< D, d > >, R > >& values,
+                  const std::string name_in = default_config().get< std::string >("name"))
     : values_(convert(values))
-    , name_(name)
+    , name_(name_in)
   {}
 
-  virtual ~Indicator() {}
-
-  virtual ThisType* copy() const override final
-  {
-    DUNE_THROW(NotImplemented, "");
-  }
+  virtual ~DomainIndicator() {}
 
   virtual std::string name() const override final
   {
@@ -182,7 +178,125 @@ private:
 
   const std::vector< std::tuple< DomainType, DomainType, R > > values_;
   const std::string name_;
-}; // class Indicator
+}; // class DomainIndicator
+
+
+template< class E, class D, size_t d, class R, size_t r, size_t rC = 1 >
+class LevelIndicator
+  : public LocalizableFunctionInterface< E, D, d, R, rC >
+  , Stuff::Common::ConstStorageProvider< LocalizableFunctionInterface< E, D, d, R, rC > >
+{
+  typedef LocalizableFunctionInterface< E, D, d, R, rC > BaseType;
+  typedef LevelIndicator< E, D, d, R, rC >               ThisType;
+  typedef Stuff::Common::ConstStorageProvider< LocalizableFunctionInterface< E, D, d, R, rC > > StorageType;
+
+  class Localfunction
+    : public LocalfunctionInterface< E, D, d, R, rC >
+  {
+    typedef LocalfunctionInterface< E, D, d, R, rC > InterfaceType;
+  public:
+    using typename InterfaceType::EntityType;
+    using typename InterfaceType::DomainType;
+    using typename InterfaceType::RangeType;
+    using typename InterfaceType::JacobianRangeType;
+
+    Localfunction(const LocalizableFunctionInterface< E, D, d, R, rC >& inducing_function,
+                  const EntityType& entity,
+                  const RangeType& lower,
+                  const RangeType& upper,
+                  const RangeType& value)
+      : InterfaceType(entity)
+      , inducing_function_(inducing_function.local_function(entity))
+      , lower_(lower)
+      , upper_(upper)
+      , value_(value)
+    {}
+
+    virtual size_t order() const override final
+    {
+      return 0;
+    }
+
+    virtual void evaluate(const DomainType& xx, RangeType& ret) const override final
+    {
+      assert(this->is_a_valid_point(xx));
+      inducing_function_->evaluate(xx, ret);
+      if (Common::FloatCmp::le(lower_, ret) && Common::FloatCmp::le(ret, upper_))
+        ret = value_;
+      else
+        ret *= 0.0;
+    }
+
+    virtual void jacobian(const DomainType& xx, JacobianRangeType& ret) const override final
+    {
+      assert(this->is_a_valid_point(xx));
+      ret *= 0.0;
+    }
+
+  private:
+    const std::unique_ptr< LocalfunctionInterface< E, D, d, R, rC > > inducing_function_;
+    const RangeType& lower_;
+    const RangeType& upper_;
+    const RangeType& value_;
+  }; // class Localfunction
+
+public:
+  using typename BaseType::EntityType;
+  using typename BaseType::DomainFieldType;
+  using typename BaseType::DomainType;
+  using typename BaseType::RangeType;
+  using typename BaseType::RangeFieldType;
+  using typename BaseType::LocalfunctionType;
+
+  static const bool available = true;
+
+  static std::string static_id()
+  {
+    return BaseType::static_id() + ".levelindicator";
+  }
+
+  LevelIndicator(const LocalizableFunctionInterface< E, D, d, R, rC >& inducing_function,
+                 const RangeType& lower,
+                 const RangeType& upper,
+                 const RangeType& value,
+                 const std::string nm = static_id())
+    : StorageType(inducing_function)
+    , lower_(lower)
+    , upper_(upper)
+    , value_(value)
+    , name_(nm)
+  {}
+
+  LevelIndicator(std::shared_ptr< const LocalizableFunctionInterface< E, D, d, R, rC > > inducing_function,
+                 const RangeType& lower,
+                 const RangeType& upper,
+                 const RangeType& value,
+                 const std::string nm = static_id())
+    : StorageType(inducing_function)
+    , lower_(lower)
+    , upper_(upper)
+    , value_(value)
+    , name_(nm)
+  {}
+
+  virtual ~LevelIndicator() {}
+
+  virtual std::string name() const override final
+  {
+    return name_;
+  }
+
+  virtual std::unique_ptr< LocalfunctionType > local_function(const EntityType& entity) const override final
+  {
+    return Common::make_unique< Localfunction >(this->access(), entity, lower_, upper_, value_);
+  }
+
+private:
+  const RangeType lower_;
+  const RangeType upper_;
+  const RangeType value_;
+  const std::string name_;
+}; // class LevelIndicator
 
 
 } // namespace Functions
