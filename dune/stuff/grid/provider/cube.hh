@@ -128,6 +128,7 @@ public:
   static Common::Configuration default_config(const std::string sub_name = "")
   {
     Common::Configuration config;
+    config["type"] = static_id();
     config["lower_left"] = "[0.0 0.0 0.0 0.0]";
     config["upper_right"] = "[1.0 1.0 1.0 1.0]";
     config["num_elements"] = "[8 8 8 8]";
