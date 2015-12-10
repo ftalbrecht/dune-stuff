@@ -147,7 +147,7 @@ private:
   typedef Functions::FlatTop< E, D, d, R, r, rC >                         FlattopType;
   typedef Functions::ESV2007::Testcase1Force< E, D, d, R, r, rC >         ESV2007Testcase1ForceType;
   typedef Functions::ESV2007::Testcase1ExactSolution< E, D, d, R, r, rC > ESV2007Testcase1ExactSolutionType;
-  typedef Functions::Indicator< E, D, d, R, r, rC >                       IndicatorType;
+  typedef Functions::DomainIndicator< E, D, d, R, r, rC >                 IndicatorType;
   typedef Functions::Spe10::Model1< E, D, d, R, r, rC >                   Spe10Model1Type;
 
 public:
