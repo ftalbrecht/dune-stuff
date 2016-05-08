@@ -11,9 +11,9 @@
 #include <vector>
 
 #include <dune/stuff/common/disable_warnings.hh>
-# if HAVE_EIGEN
-#   include <Eigen/Core>
-# endif
+#if HAVE_EIGEN
+#include <Eigen/Core>
+#endif
 #include <dune/stuff/common/reenable_warnings.hh>
 
 #include <dune/common/typetraits.hh>
@@ -30,34 +30,33 @@ namespace Stuff {
 namespace LA {
 
 
-template< class ScalarImp >
+template <class ScalarImp>
 class EigenDenseMatrix;
 
-template< class ScalarType >
+template <class ScalarType>
 class EigenRowMajorSparseMatrix;
 
 
 #if HAVE_EIGEN
 
 
-template< class Traits, class ScalarImp >
+template <class Traits, class ScalarImp>
 class EigenBaseVector;
 
 
 /**
  *  \brief Base class for all eigen implementations of VectorInterface.
  */
-template< class ImpTraits, class ScalarImp = double >
-class EigenBaseVector
-  : public VectorInterface< ImpTraits, ScalarImp >
-  , public ProvidesBackend< ImpTraits >
+template <class ImpTraits, class ScalarImp = double>
+class EigenBaseVector : public VectorInterface<ImpTraits, ScalarImp>, public ProvidesBackend<ImpTraits>
 {
-  typedef VectorInterface< ImpTraits, ScalarImp > VectorInterfaceType;
-  typedef EigenBaseVector< ImpTraits, ScalarImp > ThisType;
+  typedef VectorInterface<ImpTraits, ScalarImp> VectorInterfaceType;
+  typedef EigenBaseVector<ImpTraits, ScalarImp> ThisType;
+
 public:
   typedef ImpTraits Traits;
-  typedef typename Traits::ScalarType   ScalarType;
-  typedef typename Traits::BackendType  BackendType;
+  typedef typename Traits::ScalarType ScalarType;
+  typedef typename Traits::BackendType BackendType;
   typedef typename Traits::derived_type VectorImpType;
 
   VectorImpType& operator=(const ThisType& other)
@@ -104,8 +103,8 @@ public:
     backend() *= alpha;
   }
 
-  template< class T >
-  void axpy(const ScalarType& alpha, const EigenBaseVector< T, ScalarType >& xx)
+  template <class T>
+  void axpy(const ScalarType& alpha, const EigenBaseVector<T, ScalarType>& xx)
   {
     if (xx.size() != size())
       DUNE_THROW(Exceptions::shapes_do_not_match,
@@ -162,26 +161,26 @@ public:
   /// \name These methods override default implementations from VectorInterface.
   /// \{
 
-  virtual std::pair< size_t, ScalarType > amax() const override final
+  virtual std::pair<size_t, ScalarType> amax() const override final
   {
-    auto result = std::make_pair(size_t(0), ScalarType(0));
-    size_t min_index = 0;
-    size_t max_index = 0;
+    auto result              = std::make_pair(size_t(0), ScalarType(0));
+    size_t min_index         = 0;
+    size_t max_index         = 0;
     const ScalarType minimum = backend_->minCoeff(&min_index);
     const ScalarType maximum = backend_->maxCoeff(&max_index);
     if (std::abs(maximum) < std::abs(minimum)
         || (Common::FloatCmp::eq(std::abs(maximum), std::abs(minimum)) && max_index > min_index)) {
-      result.first = min_index;
+      result.first  = min_index;
       result.second = std::abs(minimum);
     } else {
-      result.first = max_index;
+      result.first  = max_index;
       result.second = std::abs(maximum);
     }
     return result;
   } // ... amax(...)
 
-  template< class T >
-  ScalarType dot(const EigenBaseVector< T, ScalarType >& other) const
+  template <class T>
+  ScalarType dot(const EigenBaseVector<T, ScalarType>& other) const
   {
     if (other.size() != size())
       DUNE_THROW(Exceptions::shapes_do_not_match,
@@ -191,26 +190,26 @@ public:
 
   virtual ScalarType dot(const VectorImpType& other) const override final
   {
-    return this->template dot< Traits >(other);
+    return this->template dot<Traits>(other);
   }
 
   virtual ScalarType l1_norm() const override final
   {
-    return backend_->template lpNorm< 1 >();
+    return backend_->template lpNorm<1>();
   }
 
   virtual ScalarType l2_norm() const override final
   {
-    return backend_->template lpNorm< 2 >();
+    return backend_->template lpNorm<2>();
   }
 
   virtual ScalarType sup_norm() const override final
   {
-    return backend_->template lpNorm< ::Eigen::Infinity >();
+    return backend_->template lpNorm<::Eigen::Infinity>();
   }
 
-  template< class T1, class T2 >
-  void add(const EigenBaseVector< T1, ScalarType >& other, EigenBaseVector< T2, ScalarType >& result) const
+  template <class T1, class T2>
+  void add(const EigenBaseVector<T1, ScalarType>& other, EigenBaseVector<T2, ScalarType>& result) const
   {
     if (other.size() != size())
       DUNE_THROW(Exceptions::shapes_do_not_match,
@@ -223,11 +222,11 @@ public:
 
   virtual void add(const VectorImpType& other, VectorImpType& result) const override final
   {
-    return this->template add< Traits, Traits >(other, result);
+    return this->template add<Traits, Traits>(other, result);
   }
 
-  template< class T >
-  void iadd(const EigenBaseVector< T, ScalarType >& other)
+  template <class T>
+  void iadd(const EigenBaseVector<T, ScalarType>& other)
   {
     if (other.size() != size())
       DUNE_THROW(Exceptions::shapes_do_not_match,
@@ -237,11 +236,11 @@ public:
 
   virtual void iadd(const VectorImpType& other) override final
   {
-    return this->template iadd< Traits >(other);
+    return this->template iadd<Traits>(other);
   }
 
-  template< class T1, class T2 >
-  void sub(const EigenBaseVector< T1, ScalarType >& other, EigenBaseVector< T2, ScalarType >& result) const
+  template <class T1, class T2>
+  void sub(const EigenBaseVector<T1, ScalarType>& other, EigenBaseVector<T2, ScalarType>& result) const
   {
     if (other.size() != size())
       DUNE_THROW(Exceptions::shapes_do_not_match,
@@ -254,11 +253,11 @@ public:
 
   virtual void sub(const VectorImpType& other, VectorImpType& result) const override final
   {
-    return this->template sub< Traits, Traits >(other, result);
+    return this->template sub<Traits, Traits>(other, result);
   }
 
-  template< class T >
-  void isub(const EigenBaseVector< T, ScalarType >& other)
+  template <class T>
+  void isub(const EigenBaseVector<T, ScalarType>& other)
   {
     if (other.size() != size())
       DUNE_THROW(Exceptions::shapes_do_not_match,
@@ -268,7 +267,7 @@ public:
 
   virtual void isub(const VectorImpType& other) override final
   {
-    this->template isub< Traits >(other);
+    this->template isub<Traits>(other);
   }
 
   /// \{
@@ -291,22 +290,22 @@ private:
   using VectorInterfaceType::crtp_mutex_;
 #endif
 
-  friend class VectorInterface< Traits, ScalarType >;
-  friend class EigenDenseMatrix< ScalarType >;
-  friend class EigenRowMajorSparseMatrix< ScalarType >;
+  friend class VectorInterface<Traits, ScalarType>;
+  friend class EigenDenseMatrix<ScalarType>;
+  friend class EigenRowMajorSparseMatrix<ScalarType>;
 
 protected:
-  mutable std::shared_ptr< BackendType > backend_;
+  mutable std::shared_ptr<BackendType> backend_;
 }; // class EigenBaseVector
 
 
 #else // HAVE_EIGEN
 
 
-template< class Traits, class ScalarImp >
+template <class Traits, class ScalarImp>
 class EigenBaseVector
 {
-  static_assert(Dune::AlwaysFalse< ScalarImp >::value, "You are missing Eigen!");
+  static_assert(Dune::AlwaysFalse<ScalarImp>::value, "You are missing Eigen!");
 };
 
 

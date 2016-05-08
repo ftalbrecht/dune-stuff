@@ -15,15 +15,15 @@
 #include <boost/numeric/conversion/cast.hpp>
 
 #if HAVE_DUNE_GRID
-# include <dune/grid/sgrid.hh>
-# include <dune/grid/yaspgrid.hh>
-# if HAVE_ALUGRID
-#   include <dune/grid/alugrid.hh>
-# endif
-# if HAVE_DUNE_SPGRID
-#   include <dune/grid/spgrid.hh>
-# endif
-# include <dune/stuff/grid/structuredgridfactory.hh>
+#include <dune/grid/sgrid.hh>
+#include <dune/grid/yaspgrid.hh>
+#if HAVE_ALUGRID
+#include <dune/grid/alugrid.hh>
+#endif
+#if HAVE_DUNE_SPGRID
+#include <dune/grid/spgrid.hh>
+#endif
+#include <dune/stuff/grid/structuredgridfactory.hh>
 #endif
 
 #include <dune/stuff/common/fvector.hh>
@@ -43,10 +43,10 @@ namespace Configs {
 static Common::Configuration Cube_default(const std::string sub_name = "")
 {
   Common::Configuration config;
-  config["type"] = "stuff.grid.provider.cube";
-  config["lower_left"] = "[0 0 0 0]";
-  config["upper_right"] = "[1 1 1 1]";
-  config["num_elements"] = "[8 8 8 8]";
+  config["type"]            = "stuff.grid.provider.cube";
+  config["lower_left"]      = "[0 0 0 0]";
+  config["upper_right"]     = "[1 1 1 1]";
+  config["num_elements"]    = "[8 8 8 8]";
   config["num_refinements"] = "0";
   if (sub_name.empty())
     return config;
@@ -62,33 +62,33 @@ static Common::Configuration Cube_default(const std::string sub_name = "")
 namespace internal {
 
 
-template< typename GridType >
+template <typename GridType>
 struct ElementVariant;
 
 
-template< typename GridType >
+template <typename GridType>
 struct ElementVariant
 {
   static const int id = 2;
 };
 
 #if HAVE_DUNE_GRID
-template< int dim >
-struct ElementVariant< Dune::YaspGrid< dim > >
+template <int dim>
+struct ElementVariant<Dune::YaspGrid<dim>>
 {
   static const int id = 1;
 };
 
 
-template< int dimGrid, int dimWorld >
-struct ElementVariant< Dune::SGrid< dimGrid, dimWorld > >
+template <int dimGrid, int dimWorld>
+struct ElementVariant<Dune::SGrid<dimGrid, dimWorld>>
 {
   static const int id = 1;
 };
 
 #if HAVE_DUNE_SPGRID
-template< class ct, int dim, SPRefinementStrategy strategy, class Comm >
-struct ElementVariant< Dune::SPGrid< ct, dim, strategy, Comm > >
+template <class ct, int dim, SPRefinementStrategy strategy, class Comm>
+struct ElementVariant<Dune::SPGrid<ct, dim, strategy, Comm>>
 {
   static const int id = 1;
 };
@@ -99,22 +99,22 @@ struct ElementVariant< Dune::SPGrid< ct, dim, strategy, Comm > >
 #if HAVE_ALUGRID
 
 
-template< int dimGrid, int dimWorld >
-struct ElementVariant< Dune::ALUCubeGrid< dimGrid, dimWorld > >
+template <int dimGrid, int dimWorld>
+struct ElementVariant<Dune::ALUCubeGrid<dimGrid, dimWorld>>
 {
   static const int id = 1;
 };
 
 
-template< int dimGrid, int dimWorld, class MpiCommImp >
-struct ElementVariant< Dune::ALUGrid< dimGrid, dimWorld, Dune::cube, Dune::conforming, MpiCommImp > >
+template <int dimGrid, int dimWorld, class MpiCommImp>
+struct ElementVariant<Dune::ALUGrid<dimGrid, dimWorld, Dune::cube, Dune::conforming, MpiCommImp>>
 {
   static const int id = 1;
 };
 
 
-template< int dimGrid, int dimWorld, class MpiCommImp >
-struct ElementVariant< Dune::ALUGrid< dimGrid, dimWorld, Dune::cube, Dune::nonconforming, MpiCommImp > >
+template <int dimGrid, int dimWorld, class MpiCommImp>
+struct ElementVariant<Dune::ALUGrid<dimGrid, dimWorld, Dune::cube, Dune::nonconforming, MpiCommImp>>
 {
   static const int id = 1;
 };
@@ -144,12 +144,12 @@ struct ElementVariant< Dune::ALUGrid< dimGrid, dimWorld, Dune::cube, Dune::nonco
  *          <ul><li>\c 1: cubes
  *          <li>2: simplices</ul>
  **/
-template< typename GridImp, int variant = internal::ElementVariant< GridImp >::id >
-class Cube
-  : public ProviderInterface< GridImp >
+template <typename GridImp, int variant = internal::ElementVariant<GridImp>::id>
+class Cube : public ProviderInterface<GridImp>
 {
-  typedef ProviderInterface< GridImp > BaseType;
-  typedef Cube< GridImp, variant > ThisType;
+  typedef ProviderInterface<GridImp> BaseType;
+  typedef Cube<GridImp, variant> ThisType;
+
 public:
   using typename BaseType::GridType;
   static const size_t dimDomain = BaseType::dimDomain;
@@ -166,17 +166,17 @@ public:
     return Configs::Cube_default(sub_name);
   }
 
-  static std::unique_ptr< ThisType > create(const Common::Configuration config = default_config(),
-                                            const std::string sub_name = static_id())
+  static std::unique_ptr<ThisType> create(const Common::Configuration config = default_config(),
+                                          const std::string sub_name = static_id())
   {
     // get correct config
-    const Common::Configuration cfg = config.has_sub(sub_name) ? config.sub(sub_name) : config;
+    const Common::Configuration cfg         = config.has_sub(sub_name) ? config.sub(sub_name) : config;
     const Common::Configuration default_cfg = default_config();
-    return Common::make_unique< ThisType >(
-          cfg.get("lower_left", default_cfg.get< DomainType >("lower_left")),
-          cfg.get("upper_right", default_cfg.get< DomainType >("upper_right")),
-          cfg.get("num_elements", default_cfg.get< std::vector< unsigned int > >("num_elements"), dimDomain),
-          cfg.get("num_refinements", default_cfg.get< size_t >("num_refinements")));
+    return Common::make_unique<ThisType>(
+        cfg.get("lower_left", default_cfg.get<DomainType>("lower_left")),
+        cfg.get("upper_right", default_cfg.get<DomainType>("upper_right")),
+        cfg.get("num_elements", default_cfg.get<std::vector<unsigned int>>("num_elements"), dimDomain),
+        cfg.get("num_refinements", default_cfg.get<size_t>("num_refinements")));
   } // ... create(...)
 
   /**
@@ -188,30 +188,30 @@ public:
    *  \param[in]  num_elements (optional)
    *              Number of elements.
    **/
-  explicit Cube(const DomainFieldType lower_left = default_config().get< DomainType >("lower_left")[0],
-                const DomainFieldType upper_right = default_config().get< DomainType >("upper_right")[0],
-                const unsigned int num_elements = default_config().get< std::vector< unsigned int > >("num_elements")[0],
-                const size_t num_refinements = default_config().get< size_t >("num_refinements"))
-    : grid_ptr_(create_grid(DomainType(lower_left),
-                            DomainType(upper_right),
-                            parse_array(num_elements),
-                            num_refinements))
-  {}
+  explicit Cube(const DomainFieldType lower_left = default_config().get<DomainType>("lower_left")[0],
+                const DomainFieldType upper_right = default_config().get<DomainType>("upper_right")[0],
+                const unsigned int num_elements   = default_config().get<std::vector<unsigned int>>("num_elements")[0],
+                const size_t num_refinements = default_config().get<size_t>("num_refinements"))
+    : grid_ptr_(
+          create_grid(DomainType(lower_left), DomainType(upper_right), parse_array(num_elements), num_refinements))
+  {
+  }
 
-  Cube(const DSC::FieldVector< DomainFieldType, dimDomain >& lower_left,
-       const DSC::FieldVector< DomainFieldType, dimDomain >& upper_right,
-       const unsigned int num_elements = default_config().get< std::vector< unsigned int > >("num_elements")[0],
-       const size_t num_refinements = default_config().get< size_t >("num_refinements"))
+  Cube(const DSC::FieldVector<DomainFieldType, dimDomain>& lower_left,
+       const DSC::FieldVector<DomainFieldType, dimDomain>& upper_right,
+       const unsigned int num_elements = default_config().get<std::vector<unsigned int>>("num_elements")[0],
+       const size_t num_refinements = default_config().get<size_t>("num_refinements"))
     : grid_ptr_(create_grid(lower_left, upper_right, parse_array(num_elements), num_refinements))
-  {}
+  {
+  }
 
-  Cube(const DSC::FieldVector< DomainFieldType, dimDomain >& lower_left,
-       const DSC::FieldVector< DomainFieldType, dimDomain >& upper_right,
-       const std::vector< unsigned int > num_elements
-          = default_config().get< std::vector< unsigned int > >("num_elements"),
-       const size_t num_refinements = default_config().get< size_t >("num_refinements"))
+  Cube(const DSC::FieldVector<DomainFieldType, dimDomain>& lower_left,
+       const DSC::FieldVector<DomainFieldType, dimDomain>& upper_right,
+       const std::vector<unsigned int> num_elements = default_config().get<std::vector<unsigned int>>("num_elements"),
+       const size_t num_refinements = default_config().get<size_t>("num_refinements"))
     : grid_ptr_(create_grid(lower_left, upper_right, parse_array(num_elements), num_refinements))
-  {}
+  {
+  }
 
   virtual GridType& grid() override
   {
@@ -223,81 +223,80 @@ public:
     return *grid_ptr_;
   }
 
-  std::shared_ptr< GridType > grid_ptr()
+  std::shared_ptr<GridType> grid_ptr()
   {
     return grid_ptr_;
   }
 
-  const std::shared_ptr< const GridType >& grid_ptr() const
+  const std::shared_ptr<const GridType>& grid_ptr() const
   {
     return grid_ptr_;
   }
 
-  virtual std::unique_ptr< BaseType > copy() override
+  virtual std::unique_ptr<BaseType> copy() override
   {
-    return Common::make_unique< Cube< GridType > >(*this);
+    return Common::make_unique<Cube<GridType>>(*this);
   }
 
 private:
-  static std::array< unsigned int, dimDomain > parse_array(const unsigned int in)
+  static std::array<unsigned int, dimDomain> parse_array(const unsigned int in)
   {
-    std::array< unsigned int, dimDomain > ret;
+    std::array<unsigned int, dimDomain> ret;
     std::fill(ret.begin(), ret.end(), in);
     return ret;
   } // ... parse_array(...)
 
-  static std::array< unsigned int, dimDomain > parse_array(const std::vector< unsigned int >& in)
+  static std::array<unsigned int, dimDomain> parse_array(const std::vector<unsigned int>& in)
   {
     if (in.size() < dimDomain)
       DUNE_THROW(Exceptions::wrong_input_given,
                  "Given vector is too short: should be " << dimDomain << ", is " << in.size() << "!");
-    std::array< unsigned int, dimDomain > ret;
+    std::array<unsigned int, dimDomain> ret;
     for (size_t ii = 0; ii < dimDomain; ++ii)
       ret[ii] = in[ii];
     return ret;
   } // ... parse_array(...)
 
-  static std::shared_ptr< GridType > create_grid(DomainType lower_left,
-                                                 DomainType upper_right,
-                                                 const std::array< unsigned int, dimDomain >& num_elements,
-                                                 const size_t num_refinements)
+  static std::shared_ptr<GridType> create_grid(DomainType lower_left, DomainType upper_right,
+                                               const std::array<unsigned int, dimDomain>& num_elements,
+                                               const size_t num_refinements)
   {
     static_assert(variant == 1 || variant == 2, "variant has to be 1 or 2!");
     for (size_t dd = 0; dd < dimDomain; ++dd) {
       if (!(lower_left[dd] < upper_right[dd]))
         DUNE_THROW(Exceptions::wrong_input_given,
-                   "lower_left has to be elementwise smaller than upper_right!\n\n"
-                   << lower_left[dd] << " vs. " << upper_right[dd]);
+                   "lower_left has to be elementwise smaller than upper_right!\n\n" << lower_left[dd] << " vs. "
+                                                                                    << upper_right[dd]);
     }
-    std::shared_ptr< GridType > grd_ptr(nullptr);
+    std::shared_ptr<GridType> grd_ptr(nullptr);
     switch (variant) {
       case 1:
-        grd_ptr = DSG::StructuredGridFactory< GridType >::createCubeGrid(lower_left, upper_right, num_elements);
+        grd_ptr = DSG::StructuredGridFactory<GridType>::createCubeGrid(lower_left, upper_right, num_elements);
         break;
       case 2:
-    default:
-        grd_ptr = DSG::StructuredGridFactory< GridType >::createSimplexGrid(lower_left, upper_right, num_elements);
+      default:
+        grd_ptr = DSG::StructuredGridFactory<GridType>::createSimplexGrid(lower_left, upper_right, num_elements);
         break;
     }
     grd_ptr->loadBalance();
     grd_ptr->preAdapt();
-    grd_ptr->globalRefine(boost::numeric_cast< int >(num_refinements));
+    grd_ptr->globalRefine(boost::numeric_cast<int>(num_refinements));
     grd_ptr->postAdapt();
     grd_ptr->loadBalance();
     return grd_ptr;
   } // ... create_grid(...)
 
-  std::shared_ptr< GridType > grid_ptr_;
+  std::shared_ptr<GridType> grid_ptr_;
 }; // class Cube
 
 
 #else // HAVE_DUNE_GRID
 
 
-template< typename GridImp, int variant = 1 >
+template <typename GridImp, int variant = 1>
 class Cube
 {
-  static_assert(AlwaysFalse< GridImp >::value, "You are missing dune-grid!");
+  static_assert(AlwaysFalse<GridImp>::value, "You are missing dune-grid!");
 };
 
 

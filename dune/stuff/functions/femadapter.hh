@@ -17,37 +17,42 @@ namespace Stuff {
 namespace Functions {
 
 
-template< class DiscreteFunctionType >
+template <class DiscreteFunctionType>
 class FemAdapter
-  : public LocalizableFunctionInterface< typename DiscreteFunctionType::EntityType,
-    typename DiscreteFunctionType::DomainFieldType, DiscreteFunctionType::DiscreteFunctionSpaceType::dimDomain,
-    typename DiscreteFunctionType::RangeFieldType, DiscreteFunctionType::DiscreteFunctionSpaceType::dimRange, 1>
+    : public LocalizableFunctionInterface<
+          typename DiscreteFunctionType::EntityType, typename DiscreteFunctionType::DomainFieldType,
+          DiscreteFunctionType::DiscreteFunctionSpaceType::dimDomain, typename DiscreteFunctionType::RangeFieldType,
+          DiscreteFunctionType::DiscreteFunctionSpaceType::dimRange, 1>
 {
-  typedef LocalizableFunctionInterface< typename DiscreteFunctionType::EntityType,
-  typename DiscreteFunctionType::DomainFieldType, DiscreteFunctionType::DiscreteFunctionSpaceType::dimDomain,
-  typename DiscreteFunctionType::RangeFieldType, DiscreteFunctionType::DiscreteFunctionSpaceType::dimRange, 1>
-    BaseType;
+  typedef LocalizableFunctionInterface<
+      typename DiscreteFunctionType::EntityType, typename DiscreteFunctionType::DomainFieldType,
+      DiscreteFunctionType::DiscreteFunctionSpaceType::dimDomain, typename DiscreteFunctionType::RangeFieldType,
+      DiscreteFunctionType::DiscreteFunctionSpaceType::dimRange, 1> BaseType;
   typedef FemAdapter<DiscreteFunctionType> ThisType;
 
   class Localfunction
-    : public LocalfunctionInterface < typename DiscreteFunctionType::EntityType,
-      typename DiscreteFunctionType::DomainFieldType, DiscreteFunctionType::DiscreteFunctionSpaceType::dimDomain,
-      typename DiscreteFunctionType::RangeFieldType, DiscreteFunctionType::DiscreteFunctionSpaceType::dimRange, 1>
+      : public LocalfunctionInterface<
+            typename DiscreteFunctionType::EntityType, typename DiscreteFunctionType::DomainFieldType,
+            DiscreteFunctionType::DiscreteFunctionSpaceType::dimDomain, typename DiscreteFunctionType::RangeFieldType,
+            DiscreteFunctionType::DiscreteFunctionSpaceType::dimRange, 1>
   {
-    typedef LocalfunctionInterface< typename DiscreteFunctionType::EntityType,
-    typename DiscreteFunctionType::DomainFieldType, DiscreteFunctionType::DiscreteFunctionSpaceType::dimDomain,
-    typename DiscreteFunctionType::RangeFieldType, DiscreteFunctionType::DiscreteFunctionSpaceType::dimRange, 1> BaseType;
+    typedef LocalfunctionInterface<
+        typename DiscreteFunctionType::EntityType, typename DiscreteFunctionType::DomainFieldType,
+        DiscreteFunctionType::DiscreteFunctionSpaceType::dimDomain, typename DiscreteFunctionType::RangeFieldType,
+        DiscreteFunctionType::DiscreteFunctionSpaceType::dimRange, 1> BaseType;
+
   public:
     typedef typename BaseType::EntityType EntityType;
 
-    typedef typename BaseType::DomainType        DomainType;
-    typedef typename BaseType::RangeType         RangeType;
+    typedef typename BaseType::DomainType DomainType;
+    typedef typename BaseType::RangeType RangeType;
     typedef typename BaseType::JacobianRangeType JacobianRangeType;
 
     Localfunction(const DiscreteFunctionType& df, const EntityType& ent)
       : BaseType(ent)
       , wrapped_localfunction_(df.localFunction(ent))
-    {}
+    {
+    }
 
     Localfunction(const Localfunction& /*other*/) = delete;
 
@@ -69,15 +74,18 @@ class FemAdapter
     }
 
   private:
-    typedef typename DiscreteFunctionType::LocalFunctionType  WrappedLocalfunctionType;
+    typedef typename DiscreteFunctionType::LocalFunctionType WrappedLocalfunctionType;
     WrappedLocalfunctionType wrapped_localfunction_;
   }; // class Localfunction
 
 public:
-  typedef typename BaseType::EntityType         EntityType;
-  typedef typename BaseType::LocalfunctionType  LocalfunctionType;
+  typedef typename BaseType::EntityType EntityType;
+  typedef typename BaseType::LocalfunctionType LocalfunctionType;
 
-  FemAdapter(const DiscreteFunctionType& df) : df_(df) {}
+  FemAdapter(const DiscreteFunctionType& df)
+    : df_(df)
+  {
+  }
 
   static std::string static_id()
   {
@@ -100,7 +108,7 @@ public:
   }
 
   //! this intentionally hides
-  virtual std::unique_ptr< LocalfunctionType > local_function(const EntityType& entity) const
+  virtual std::unique_ptr<LocalfunctionType> local_function(const EntityType& entity) const
   {
     return DSC::make_unique<Localfunction>(df_, entity);
   } // ... local_function(...)

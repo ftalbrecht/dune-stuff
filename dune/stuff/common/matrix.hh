@@ -29,7 +29,7 @@ namespace Common {
  *        specify a specialization of this class in your code with is_matrix defined to true and an appropriate
  *        static methods and members (see the specializations below).
  */
-template< class MatType >
+template <class MatType>
 struct MatrixAbstraction
 {
   typedef MatType MatrixType;
@@ -40,55 +40,56 @@ struct MatrixAbstraction
 
   static const bool has_static_size = false;
 
-  static const size_t static_rows = std::numeric_limits< size_t >::max();
+  static const size_t static_rows = std::numeric_limits<size_t>::max();
 
-  static const size_t static_cols = std::numeric_limits< size_t >::max();
+  static const size_t static_cols = std::numeric_limits<size_t>::max();
 
-  static inline /*MatrixType*/void create(const size_t /*rows*/, const size_t /*cols*/)
+  static inline /*MatrixType*/ void create(const size_t /*rows*/, const size_t /*cols*/)
   {
-    static_assert(AlwaysFalse< MatType >::value, "Do not call me if is_matrix is false!");
+    static_assert(AlwaysFalse<MatType>::value, "Do not call me if is_matrix is false!");
   }
 
-  static inline /*MatrixType*/void create(const size_t /*rows*/, const size_t /*cols*/, const ScalarType& /*val*/)
+  static inline /*MatrixType*/ void create(const size_t /*rows*/, const size_t /*cols*/, const ScalarType& /*val*/)
   {
-    static_assert(AlwaysFalse< MatType >::value, "Do not call me if is_matrix is false!");
+    static_assert(AlwaysFalse<MatType>::value, "Do not call me if is_matrix is false!");
   }
 
-  static inline /*size_t*/void rows(const MatrixType& /*mat*/)
+  static inline /*size_t*/ void rows(const MatrixType& /*mat*/)
   {
-    static_assert(AlwaysFalse< MatType >::value, "Do not call me if is_matrix is false!");
+    static_assert(AlwaysFalse<MatType>::value, "Do not call me if is_matrix is false!");
   }
 
-  static inline /*size_t*/void cols(const MatrixType& /*mat*/)
+  static inline /*size_t*/ void cols(const MatrixType& /*mat*/)
   {
-    static_assert(AlwaysFalse< MatType >::value, "Do not call me if is_matrix is false!");
+    static_assert(AlwaysFalse<MatType>::value, "Do not call me if is_matrix is false!");
   }
 
-  static inline void set_entry(MatrixType& /*mat*/, const size_t /*row*/, const size_t /*col*/, const ScalarType& /*val*/)
+  static inline void set_entry(MatrixType& /*mat*/, const size_t /*row*/, const size_t /*col*/,
+                               const ScalarType& /*val*/)
   {
-    static_assert(AlwaysFalse< MatType >::value, "Do not call me if is_matrix is false!");
+    static_assert(AlwaysFalse<MatType>::value, "Do not call me if is_matrix is false!");
   }
 
-  static inline /*ScalarType*/void get_entry(const MatrixType& /*mat*/, const size_t /*row*/, const size_t /*col*/)
+  static inline /*ScalarType*/ void get_entry(const MatrixType& /*mat*/, const size_t /*row*/, const size_t /*col*/)
   {
-    static_assert(AlwaysFalse< MatType >::value, "Do not call me if is_matrix is false!");
+    static_assert(AlwaysFalse<MatType>::value, "Do not call me if is_matrix is false!");
   }
 };
 
-template< class K >
-struct MatrixAbstraction< Dune::DynamicMatrix< K > >
+template <class K>
+struct MatrixAbstraction<Dune::DynamicMatrix<K>>
 {
-  typedef Dune::DynamicMatrix< K > MatrixType;
-  typedef K                        ScalarType;
-  typedef ScalarType               S;
+  typedef Dune::DynamicMatrix<K> MatrixType;
+  typedef K ScalarType;
+  typedef ScalarType S;
 
   static const bool is_matrix = true;
 
   static const bool has_static_size = false;
 
-  static const size_t static_rows = std::numeric_limits< size_t >::max();
+  static const size_t static_rows = std::numeric_limits<size_t>::max();
 
-  static const size_t static_cols = std::numeric_limits< size_t >::max();
+  static const size_t static_cols = std::numeric_limits<size_t>::max();
 
   static inline MatrixType create(const size_t rows, const size_t cols)
   {
@@ -121,12 +122,12 @@ struct MatrixAbstraction< Dune::DynamicMatrix< K > >
   }
 };
 
-template< class K, int N, int M >
-struct MatrixAbstraction< Dune::FieldMatrix< K, N, M > >
+template <class K, int N, int M>
+struct MatrixAbstraction<Dune::FieldMatrix<K, N, M>>
 {
-  typedef Dune::FieldMatrix< K, N, M > MatrixType;
-  typedef K                            ScalarType;
-  typedef ScalarType                   S;
+  typedef Dune::FieldMatrix<K, N, M> MatrixType;
+  typedef K ScalarType;
+  typedef ScalarType S;
 
   static const bool is_matrix = true;
 
@@ -139,33 +140,29 @@ struct MatrixAbstraction< Dune::FieldMatrix< K, N, M > >
   static inline MatrixType create(const size_t rows, const size_t cols)
   {
     if (rows != N)
-      DUNE_THROW(Dune::Stuff::Exceptions::shapes_do_not_match,
-                 "rows = " << rows << "\nN = " << int(N));
+      DUNE_THROW(Dune::Stuff::Exceptions::shapes_do_not_match, "rows = " << rows << "\nN = " << int(N));
     if (cols != M)
-      DUNE_THROW(Dune::Stuff::Exceptions::shapes_do_not_match,
-                 "cols = " << cols << "\nM = " << int(M));
+      DUNE_THROW(Dune::Stuff::Exceptions::shapes_do_not_match, "cols = " << cols << "\nM = " << int(M));
     return MatrixType();
   }
 
   static inline MatrixType create(const size_t rows, const size_t cols, const ScalarType& val)
   {
     if (rows != N)
-      DUNE_THROW(Dune::Stuff::Exceptions::shapes_do_not_match,
-                 "rows = " << rows << "\nN = " << int(N));
+      DUNE_THROW(Dune::Stuff::Exceptions::shapes_do_not_match, "rows = " << rows << "\nN = " << int(N));
     if (cols != M)
-      DUNE_THROW(Dune::Stuff::Exceptions::shapes_do_not_match,
-                 "cols = " << cols << "\nM = " << int(M));
+      DUNE_THROW(Dune::Stuff::Exceptions::shapes_do_not_match, "cols = " << cols << "\nM = " << int(M));
     return MatrixType(val);
   }
 
   static inline size_t rows(const MatrixType& /*mat*/)
   {
-    return boost::numeric_cast< size_t >(N);
+    return boost::numeric_cast<size_t>(N);
   }
 
   static inline size_t cols(const MatrixType& /*mat*/)
   {
-    return boost::numeric_cast< size_t >(M);
+    return boost::numeric_cast<size_t>(M);
   }
 
   static inline void set_entry(MatrixType& mat, const size_t row, const size_t col, const ScalarType& val)
@@ -179,12 +176,12 @@ struct MatrixAbstraction< Dune::FieldMatrix< K, N, M > >
   }
 };
 
-template< class K, int N, int M >
-struct MatrixAbstraction< Dune::Stuff::Common::FieldMatrix< K, N, M > >
+template <class K, int N, int M>
+struct MatrixAbstraction<Dune::Stuff::Common::FieldMatrix<K, N, M>>
 {
-  typedef Dune::Stuff::Common::FieldMatrix< K, N, M > MatrixType;
-  typedef K                                           ScalarType;
-  typedef ScalarType                                  S;
+  typedef Dune::Stuff::Common::FieldMatrix<K, N, M> MatrixType;
+  typedef K ScalarType;
+  typedef ScalarType S;
 
   static const bool is_matrix = true;
 
@@ -192,7 +189,7 @@ struct MatrixAbstraction< Dune::Stuff::Common::FieldMatrix< K, N, M > >
 
   static const size_t static_rows = N;
 
-  static const size_t static_cols =M;
+  static const size_t static_cols = M;
 
   static inline MatrixType create(const size_t rows, const size_t cols)
   {
@@ -226,18 +223,18 @@ struct MatrixAbstraction< Dune::Stuff::Common::FieldMatrix< K, N, M > >
 };
 
 
-template< class MatrixType >
+template <class MatrixType>
 struct is_matrix
 {
-  static const bool value = MatrixAbstraction< MatrixType >::is_matrix;
+  static const bool value = MatrixAbstraction<MatrixType>::is_matrix;
 };
 
 
-template< class MatrixType >
-    typename std::enable_if< is_matrix< MatrixType >::value, MatrixType >::type
-create(const size_t sz, const typename MatrixAbstraction< MatrixType >::S& val)
+template <class MatrixType>
+typename std::enable_if<is_matrix<MatrixType>::value, MatrixType>::type
+create(const size_t sz, const typename MatrixAbstraction<MatrixType>::S& val)
 {
-  return MatrixAbstraction< MatrixType >::create(sz, val);
+  return MatrixAbstraction<MatrixType>::create(sz, val);
 }
 
 

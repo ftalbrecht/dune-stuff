@@ -25,25 +25,26 @@ namespace Stuff {
 namespace Functions {
 
 
-template< class E, class D, size_t d, class R, size_t r, size_t rC = 1 >
-class DomainIndicator
-  : public LocalizableFunctionInterface< E, D, d, R, r, rC >
+template <class E, class D, size_t d, class R, size_t r, size_t rC = 1>
+class DomainIndicator : public LocalizableFunctionInterface<E, D, d, R, r, rC>
 {
-  DomainIndicator() { static_assert(AlwaysFalse< E >::value, "Not available for these dimensions!"); }
+  DomainIndicator()
+  {
+    static_assert(AlwaysFalse<E>::value, "Not available for these dimensions!");
+  }
 };
 
 
-template< class E, class D, size_t d, class R >
-class DomainIndicator< E, D, d, R, 1 >
-  : public LocalizableFunctionInterface< E, D, d, R, 1 >
+template <class E, class D, size_t d, class R>
+class DomainIndicator<E, D, d, R, 1> : public LocalizableFunctionInterface<E, D, d, R, 1>
 {
-  typedef LocalizableFunctionInterface< E, D, d, R, 1 > BaseType;
-  typedef DomainIndicator< E, D, d, R, 1 >                    ThisType;
+  typedef LocalizableFunctionInterface<E, D, d, R, 1> BaseType;
+  typedef DomainIndicator<E, D, d, R, 1> ThisType;
 
-  class Localfunction
-    : public LocalfunctionInterface< E, D, d, R, 1 >
+  class Localfunction : public LocalfunctionInterface<E, D, d, R, 1>
   {
-    typedef LocalfunctionInterface< E, D, d, R, 1 > InterfaceType;
+    typedef LocalfunctionInterface<E, D, d, R, 1> InterfaceType;
+
   public:
     using typename InterfaceType::EntityType;
     using typename InterfaceType::DomainType;
@@ -53,7 +54,8 @@ class DomainIndicator< E, D, d, R, 1 >
     Localfunction(const EntityType& entity, const RangeType& value)
       : InterfaceType(entity)
       , value_(value)
-    {}
+    {
+    }
 
     virtual size_t order() const override final
     {
@@ -113,104 +115,107 @@ public:
     }
   } // ... default_config(...)
 
-  static std::unique_ptr< ThisType > create(const Common::Configuration config = default_config(),
-                                            const std::string sub_name = static_id())
+  static std::unique_ptr<ThisType> create(const Common::Configuration config = default_config(),
+                                          const std::string sub_name = static_id())
   {
-    const Common::Configuration cfg = config.has_sub(sub_name) ? config.sub(sub_name) : config;
+    const Common::Configuration cfg     = config.has_sub(sub_name) ? config.sub(sub_name) : config;
     const Common::Configuration def_cfg = default_config();
-    std::vector< std::tuple< DomainType, DomainType, RangeFieldType > > values;
+    std::vector<std::tuple<DomainType, DomainType, RangeFieldType>> values;
     DomainType tmp_lower;
     DomainType tmp_upper;
     size_t cc = 0;
     while (cfg.has_sub(DSC::toString(cc))) {
       const Stuff::Common::Configuration local_cfg = cfg.sub(DSC::toString(cc));
       if (local_cfg.has_key("domain") && local_cfg.has_key("value")) {
-        auto domains = local_cfg.get< FieldMatrix< DomainFieldType, d, 2 > >("domain");
+        auto domains = local_cfg.get<FieldMatrix<DomainFieldType, d, 2>>("domain");
         for (size_t dd = 0; dd < d; ++dd) {
           tmp_lower[dd] = domains[dd][0];
           tmp_upper[dd] = domains[dd][1];
         }
-        auto val = local_cfg.get< RangeFieldType >("value");
+        auto val = local_cfg.get<RangeFieldType>("value");
         values.emplace_back(tmp_lower, tmp_upper, val);
       } else
         break;
       ++cc;
     }
-    return Common::make_unique< ThisType >(values, cfg.get("name", def_cfg.get< std::string >("name")));
+    return Common::make_unique<ThisType>(values, cfg.get("name", def_cfg.get<std::string>("name")));
   } // ... create(...)
 
-  DomainIndicator(const std::vector< std::tuple< DomainType, DomainType, R > >& values,
-                  const std::string name_in = default_config().get< std::string >("name"))
+  DomainIndicator(const std::vector<std::tuple<DomainType, DomainType, R>>& values,
+                  const std::string name_in = default_config().get<std::string>("name"))
     : values_(values)
     , name_(name_in)
-  {}
+  {
+  }
 
-  DomainIndicator(const std::vector< std::pair< std::pair< Common::FieldVector< D, d >, Common::FieldVector< D, d > >, R > >& values,
-                  const std::string name_in = default_config().get< std::string >("name"))
+  DomainIndicator(
+      const std::vector<std::pair<std::pair<Common::FieldVector<D, d>, Common::FieldVector<D, d>>, R>>& values,
+      const std::string name_in = default_config().get<std::string>("name"))
     : values_(convert(values))
     , name_(name_in)
-  {}
+  {
+  }
 
-  virtual ~DomainIndicator() {}
+  virtual ~DomainIndicator()
+  {
+  }
 
   virtual std::string name() const override final
   {
     return name_;
   }
 
-  virtual std::unique_ptr< LocalfunctionType > local_function(const EntityType& entity) const override final
+  virtual std::unique_ptr<LocalfunctionType> local_function(const EntityType& entity) const override final
   {
     const auto center = entity.geometry().center();
     for (const auto& element : values_)
-      if (Common::FloatCmp::le(std::get< 0 >(element), center) && Common::FloatCmp::lt(center, std::get< 1 >(element)))
-        return Common::make_unique< Localfunction >(entity, std::get< 2 >(element));
-    return Common::make_unique< Localfunction >(entity, 0.0);
+      if (Common::FloatCmp::le(std::get<0>(element), center) && Common::FloatCmp::lt(center, std::get<1>(element)))
+        return Common::make_unique<Localfunction>(entity, std::get<2>(element));
+    return Common::make_unique<Localfunction>(entity, 0.0);
   } // ... local_function(...)
 
 private:
-  static std::vector< std::tuple< DomainType, DomainType, R > > convert(const std::vector< std::pair< std::pair< Common::FieldVector< D, d >, Common::FieldVector< D, d > >, R > >& values)
+  static std::vector<std::tuple<DomainType, DomainType, R>>
+  convert(const std::vector<std::pair<std::pair<Common::FieldVector<D, d>, Common::FieldVector<D, d>>, R>>& values)
   {
-    std::vector< std::tuple< DomainType, DomainType, R > > ret;
+    std::vector<std::tuple<DomainType, DomainType, R>> ret;
     for (const auto& element : values)
       ret.emplace_back(element.first.first, element.first.second, element.second);
     return ret;
   } // convert(...)
 
-  const std::vector< std::tuple< DomainType, DomainType, R > > values_;
+  const std::vector<std::tuple<DomainType, DomainType, R>> values_;
   const std::string name_;
 }; // class DomainIndicator
 
 
-template< class E, class D, size_t d, class R, size_t r, size_t rC = 1 >
-class LevelIndicator
-  : public LocalizableFunctionInterface< E, D, d, R, rC >
-  , Stuff::Common::ConstStorageProvider< LocalizableFunctionInterface< E, D, d, R, rC > >
+template <class E, class D, size_t d, class R, size_t r, size_t rC = 1>
+class LevelIndicator : public LocalizableFunctionInterface<E, D, d, R, rC>,
+                       Stuff::Common::ConstStorageProvider<LocalizableFunctionInterface<E, D, d, R, rC>>
 {
-  typedef LocalizableFunctionInterface< E, D, d, R, rC > BaseType;
-  typedef LevelIndicator< E, D, d, R, rC >               ThisType;
-  typedef Stuff::Common::ConstStorageProvider< LocalizableFunctionInterface< E, D, d, R, rC > > StorageType;
+  typedef LocalizableFunctionInterface<E, D, d, R, rC> BaseType;
+  typedef LevelIndicator<E, D, d, R, rC> ThisType;
+  typedef Stuff::Common::ConstStorageProvider<LocalizableFunctionInterface<E, D, d, R, rC>> StorageType;
 
-  class Localfunction
-    : public LocalfunctionInterface< E, D, d, R, rC >
+  class Localfunction : public LocalfunctionInterface<E, D, d, R, rC>
   {
-    typedef LocalfunctionInterface< E, D, d, R, rC > InterfaceType;
+    typedef LocalfunctionInterface<E, D, d, R, rC> InterfaceType;
+
   public:
     using typename InterfaceType::EntityType;
     using typename InterfaceType::DomainType;
     using typename InterfaceType::RangeType;
     using typename InterfaceType::JacobianRangeType;
 
-    Localfunction(const LocalizableFunctionInterface< E, D, d, R, rC >& inducing_function,
-                  const EntityType& entity,
-                  const RangeType& lower,
-                  const RangeType& upper,
-                  const RangeType& value)
+    Localfunction(const LocalizableFunctionInterface<E, D, d, R, rC>& inducing_function, const EntityType& entity,
+                  const RangeType& lower, const RangeType& upper, const RangeType& value)
       : InterfaceType(entity)
       , inducing_function_(inducing_function.local_function(entity))
       , lower_(lower)
       , upper_(upper)
       , value_(value)
-    {}
+    {
+    }
 
     virtual size_t order() const override final
     {
@@ -234,7 +239,7 @@ class LevelIndicator
     }
 
   private:
-    const std::unique_ptr< LocalfunctionInterface< E, D, d, R, rC > > inducing_function_;
+    const std::unique_ptr<LocalfunctionInterface<E, D, d, R, rC>> inducing_function_;
     const RangeType& lower_;
     const RangeType& upper_;
     const RangeType& value_;
@@ -255,40 +260,39 @@ public:
     return BaseType::static_id() + ".levelindicator";
   }
 
-  LevelIndicator(const LocalizableFunctionInterface< E, D, d, R, rC >& inducing_function,
-                 const RangeType& lower,
-                 const RangeType& upper,
-                 const RangeType& value,
+  LevelIndicator(const LocalizableFunctionInterface<E, D, d, R, rC>& inducing_function, const RangeType& lower,
+                 const RangeType& upper, const RangeType& value, const std::string nm = static_id())
+    : StorageType(inducing_function)
+    , lower_(lower)
+    , upper_(upper)
+    , value_(value)
+    , name_(nm)
+  {
+  }
+
+  LevelIndicator(std::shared_ptr<const LocalizableFunctionInterface<E, D, d, R, rC>> inducing_function,
+                 const RangeType& lower, const RangeType& upper, const RangeType& value,
                  const std::string nm = static_id())
     : StorageType(inducing_function)
     , lower_(lower)
     , upper_(upper)
     , value_(value)
     , name_(nm)
-  {}
+  {
+  }
 
-  LevelIndicator(std::shared_ptr< const LocalizableFunctionInterface< E, D, d, R, rC > > inducing_function,
-                 const RangeType& lower,
-                 const RangeType& upper,
-                 const RangeType& value,
-                 const std::string nm = static_id())
-    : StorageType(inducing_function)
-    , lower_(lower)
-    , upper_(upper)
-    , value_(value)
-    , name_(nm)
-  {}
-
-  virtual ~LevelIndicator() {}
+  virtual ~LevelIndicator()
+  {
+  }
 
   virtual std::string name() const override final
   {
     return name_;
   }
 
-  virtual std::unique_ptr< LocalfunctionType > local_function(const EntityType& entity) const override final
+  virtual std::unique_ptr<LocalfunctionType> local_function(const EntityType& entity) const override final
   {
-    return Common::make_unique< Localfunction >(this->access(), entity, lower_, upper_, value_);
+    return Common::make_unique<Localfunction>(this->access(), entity, lower_, upper_, value_);
   }
 
 private:

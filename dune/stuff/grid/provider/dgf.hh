@@ -10,13 +10,13 @@
 
 #include <memory>
 
-#include <dune/grid/io/file/dgfparser/gridptr.hh>        // How convenient that GridPtr requires DGFGridFactory but
+#include <dune/grid/io/file/dgfparser/gridptr.hh> // How convenient that GridPtr requires DGFGridFactory but
 #include <dune/grid/io/file/dgfparser/dgfgridfactory.hh> // does not include it!
 #include <dune/grid/io/file/dgfparser/dgfoned.hh>
 #include <dune/grid/io/file/dgfparser/dgfs.hh>
 #include <dune/grid/io/file/dgfparser/dgfyasp.hh>
 #if HAVE_ALUGRID
-# include <dune/grid/io/file/dgfparser/dgfalu.hh>
+#include <dune/grid/io/file/dgfparser/dgfalu.hh>
 #endif
 #if HAVE_DUNE_SPGRID
 #include <dune/grid/spgrid/dgfparser.hh>
@@ -32,12 +32,12 @@ namespace Grid {
 namespace Providers {
 
 
-template< class GridImp >
-class DGF
-  : public Grid::ProviderInterface< GridImp >
+template <class GridImp>
+class DGF : public Grid::ProviderInterface<GridImp>
 {
-  typedef Grid::ProviderInterface< GridImp > BaseType;
-  typedef DGF< GridImp >                     ThisType;
+  typedef Grid::ProviderInterface<GridImp> BaseType;
+  typedef DGF<GridImp> ThisType;
+
 public:
   using typename BaseType::GridType;
   using BaseType::dimDomain;
@@ -49,7 +49,7 @@ public:
 
   static Common::Configuration default_config(const std::string sub_name = "")
   {
-    Common::Configuration config({"type", "filename"},                   // linker error without int(...)
+    Common::Configuration config({"type", "filename"}, // linker error without int(...)
                                  {static_id(), "dgf_" + Common::toString(int(dimDomain)) + "d_interval.dgf"});
     if (sub_name.empty())
       return config;
@@ -60,17 +60,17 @@ public:
     }
   }
 
-  static std::unique_ptr< ThisType > create(const Common::Configuration config = default_config(),
-                                            const std::string sub_name = static_id())
+  static std::unique_ptr<ThisType> create(const Common::Configuration config = default_config(),
+                                          const std::string sub_name = static_id())
   {
-    const Common::Configuration cfg = config.has_sub(sub_name) ? config.sub(sub_name) : config;
+    const Common::Configuration cfg         = config.has_sub(sub_name) ? config.sub(sub_name) : config;
     const Common::Configuration default_cfg = default_config();
-    return Common::make_unique< ThisType >(cfg.get("filename", default_cfg.get< std::string >("filename")));
+    return Common::make_unique<ThisType>(cfg.get("filename", default_cfg.get<std::string>("filename")));
   }
 
   DGF(const std::string filename)
   {
-    grid_ = std::shared_ptr< GridType >(GridPtr< GridType >(filename).release());
+    grid_ = std::shared_ptr<GridType>(GridPtr<GridType>(filename).release());
   }
 
   DGF(ThisType&& source) = default;
@@ -91,30 +91,30 @@ public:
     return *grid_;
   }
 
-  const std::shared_ptr< const GridType > grid_ptr() const
+  const std::shared_ptr<const GridType> grid_ptr() const
   {
     return grid_;
   }
 
-  std::shared_ptr< GridType > grid_ptr()
+  std::shared_ptr<GridType> grid_ptr()
   {
     return grid_;
   }
 
-  virtual std::unique_ptr< Grid::ConstProviderInterface< GridType > > copy() const override final
+  virtual std::unique_ptr<Grid::ConstProviderInterface<GridType>> copy() const override final
   {
     DUNE_THROW(NotImplemented, "");
     return nullptr;
   }
 
-  virtual std::unique_ptr< Grid::ProviderInterface< GridType > > copy() override final
+  virtual std::unique_ptr<Grid::ProviderInterface<GridType>> copy() override final
   {
     DUNE_THROW(NotImplemented, "");
     return nullptr;
   }
 
 private:
-  std::shared_ptr< GridType > grid_;
+  std::shared_ptr<GridType> grid_;
 }; // class DGF
 
 
