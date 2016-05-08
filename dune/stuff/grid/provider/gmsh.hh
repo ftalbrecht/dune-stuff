@@ -63,7 +63,7 @@ public:
         || std::is_same<ALUGrid<2, 2, simplex, nonconforming>, GridType>::value)
       filename = "gmsh_2d_simplices.msh";
 #endif // HAVE_ALUGRID
-    Common::Configuration config("filename", filename);
+    Common::Configuration config({"type", "filename"}, {static_id(), filename});
     if (sub_name.empty())
       return config;
     else {
@@ -112,6 +112,18 @@ public:
   std::shared_ptr<GridType> grid_ptr()
   {
     return grid_;
+  }
+
+  virtual std::unique_ptr<Grid::ConstProviderInterface<GridType>> copy() const override final
+  {
+    DUNE_THROW(NotImplemented, "");
+    return nullptr;
+  }
+
+  virtual std::unique_ptr<Grid::ProviderInterface<GridType>> copy() override final
+  {
+    DUNE_THROW(NotImplemented, "");
+    return nullptr;
   }
 
 private:

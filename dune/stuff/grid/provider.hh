@@ -19,6 +19,7 @@
 
 #include "provider/interface.hh"
 #include "provider/cube.hh"
+#include "provider/dgf.hh"
 
 namespace Dune {
 namespace Stuff {
@@ -53,6 +54,8 @@ public:
     namespace Providers = Stuff::Grid::Providers;
     if (type == Providers::Cube<GridType>::static_id())
       return Providers::Cube<GridType>::default_config(subname);
+    else if (type == Providers::DGF<GridType>::static_id())
+      return Providers::DGF<GridType>::default_config(subname);
     else
       DUNE_THROW(Exceptions::wrong_input_given,
                  "'" << type << "' is not a valid " << InterfaceType::static_id() << "!");
@@ -69,6 +72,8 @@ public:
     namespace Providers = Stuff::Grid::Providers;
     if (type == Providers::Cube<GridType>::static_id())
       return call_create<Providers::Cube<GridType>>(config);
+    else if (type == Providers::DGF<GridType>::static_id())
+      return call_create<Providers::DGF<GridType>>(config);
     else
       DUNE_THROW(Exceptions::wrong_input_given,
                  "'" << type << "' is not a valid " << InterfaceType::static_id() << "!");

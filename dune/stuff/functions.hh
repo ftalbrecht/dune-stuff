@@ -137,7 +137,7 @@ private:
     std::string ret = "";
     const auto vals = available();
     if (vals.size() > 0) {
-      ret += vals[0];
+      ret += "   " + vals[0];
       for (size_t ii = 1; ii < vals.size(); ++ii)
         ret += "\n   " + vals[ii];
     }
@@ -150,7 +150,7 @@ private:
   typedef Functions::FlatTop<E, D, d, R, r, rC> FlattopType;
   typedef Functions::ESV2007::Testcase1Force<E, D, d, R, r, rC> ESV2007Testcase1ForceType;
   typedef Functions::ESV2007::Testcase1ExactSolution<E, D, d, R, r, rC> ESV2007Testcase1ExactSolutionType;
-  typedef Functions::Indicator<E, D, d, R, r, rC> IndicatorType;
+  typedef Functions::DomainIndicator<E, D, d, R, r, rC> DomainIndicatorType;
   typedef Functions::Spe10::Model1<E, D, d, R, r, rC> Spe10Model1Type;
 
 public:
@@ -163,7 +163,7 @@ public:
     ret = call_append<FlattopType>(ret);
     ret = call_append<ESV2007Testcase1ForceType>(ret);
     ret = call_append<ESV2007Testcase1ExactSolutionType>(ret);
-    ret = call_append<IndicatorType>(ret);
+    ret = call_append<DomainIndicatorType>(ret);
     ret = call_append<Spe10Model1Type>(ret);
     return ret;
   } // ... available(...)
@@ -182,8 +182,8 @@ public:
       return call_default_config<ESV2007Testcase1ForceType>(sub_name);
     else if (call_compare<ESV2007Testcase1ExactSolutionType>(type))
       return call_default_config<ESV2007Testcase1ExactSolutionType>(sub_name);
-    else if (call_compare<IndicatorType>(type))
-      return call_default_config<IndicatorType>(sub_name);
+    else if (call_compare<DomainIndicatorType>(type))
+      return call_default_config<DomainIndicatorType>(sub_name);
     else if (call_compare<Spe10Model1Type>(type))
       return call_default_config<Spe10Model1Type>(sub_name);
     else if (available().empty())
@@ -218,8 +218,8 @@ public:
       return call_create<ESV2007Testcase1ForceType>(cfg);
     else if (call_compare<ESV2007Testcase1ExactSolutionType>(type))
       return call_create<ESV2007Testcase1ExactSolutionType>(cfg);
-    else if (call_compare<IndicatorType>(type))
-      return call_create<IndicatorType>(cfg);
+    else if (call_compare<DomainIndicatorType>(type))
+      return call_create<DomainIndicatorType>(cfg);
     else if (call_compare<Spe10Model1Type>(type))
       return call_create<Spe10Model1Type>(cfg);
     else if (available().empty())

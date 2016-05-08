@@ -26,6 +26,9 @@
 #if HAVE_DUNE_ALUGRID
 #include <dune/alugrid/dgf.hh>
 #endif
+#if HAVE_DUNE_SPGRID
+#include <dune/grid/spgrid/dgfparser.hh>
+#endif
 #endif // HAVE_DUNE_GRID
 
 #include <dune/stuff/common/configuration.hh>
@@ -55,8 +58,9 @@ public:
   }
 
   static Common::Configuration default_config(const std::string sub_name = "")
-  { // size_t(...) required, else linker error with clang
-    Common::Configuration config("filename", "dgf_" + Common::toString(size_t(dimDomain)) + "d_interval.dgf");
+  {
+    Common::Configuration config({"type", "filename"}, // linker error without int(...)
+                                 {static_id(), "dgf_" + Common::toString(int(dimDomain)) + "d_interval.dgf"});
     if (sub_name.empty())
       return config;
     else {
@@ -105,6 +109,18 @@ public:
   std::shared_ptr<GridType> grid_ptr()
   {
     return grid_;
+  }
+
+  virtual std::unique_ptr<Grid::ConstProviderInterface<GridType>> copy() const override final
+  {
+    DUNE_THROW(NotImplemented, "");
+    return nullptr;
+  }
+
+  virtual std::unique_ptr<Grid::ProviderInterface<GridType>> copy() override final
+  {
+    DUNE_THROW(NotImplemented, "");
+    return nullptr;
   }
 
 private:

@@ -287,7 +287,7 @@ private:
  * \brief Generic combined function.
  *
  *        This class combines two given functions of type LeftType and RightType using the given combination
- *        Combination. This class (and any derived class, like Difference, Sum or Product) can be used in two was:
+ *        Combination. This class (and any derived class, like Difference, Sum or Product) can be used in two ways:
  *        - You can pass references of the left and right operand to this class. This is done for instance when calling
  *          operator+, operator- or operator* on any function deriving from LocalizableFunctionInterface:
 \code
@@ -462,39 +462,51 @@ public:
 }; // class Product
 
 template <class T1, class T2, class... Args>
-std::shared_ptr<Difference<T1, T2>> make_difference(const T1& left, const T2& right, Args&&... args)
+std::shared_ptr<internal::Combined<T1, T2, internal::Combination::difference>>
+make_difference(const T1& left, const T2& right, Args&&... args)
 {
-  return std::make_shared<Difference<T1, T2>>(left, right, std::forward<Args>(args)...);
+  return std::make_shared<internal::Combined<T1, T2, internal::Combination::difference>>(
+      left, right, std::forward<Args>(args)...);
 }
 
 template <class T1, class T2, class... Args>
-std::shared_ptr<Difference<T1, T2>> make_difference(std::shared_ptr<T1> left, std::shared_ptr<T2> right, Args&&... args)
+std::shared_ptr<internal::Combined<T1, T2, internal::Combination::difference>>
+make_difference(std::shared_ptr<T1> left, std::shared_ptr<T2> right, Args&&... args)
 {
-  return std::make_shared<Difference<T1, T2>>(left, right, std::forward<Args>(args)...);
+  return std::make_shared<internal::Combined<T1, T2, internal::Combination::difference>>(
+      left, right, std::forward<Args>(args)...);
 }
 
 template <class T1, class T2, class... Args>
-std::shared_ptr<Sum<T1, T2>> make_sum(const T1& left, const T2& right, Args&&... args)
+std::shared_ptr<internal::Combined<T1, T2, internal::Combination::sum>> make_sum(const T1& left, const T2& right,
+                                                                                 Args&&... args)
 {
-  return std::make_shared<Sum<T1, T2>>(left, right, std::forward<Args>(args)...);
+  return std::make_shared<internal::Combined<T1, T2, internal::Combination::sum>>(
+      left, right, std::forward<Args>(args)...);
 }
 
 template <class T1, class T2, class... Args>
-std::shared_ptr<Sum<T1, T2>> make_sum(std::shared_ptr<T1> left, std::shared_ptr<T2> right, Args&&... args)
+std::shared_ptr<internal::Combined<T1, T2, internal::Combination::sum>>
+make_sum(std::shared_ptr<T1> left, std::shared_ptr<T2> right, Args&&... args)
 {
-  return std::make_shared<Sum<T1, T2>>(left, right, std::forward<Args>(args)...);
+  return std::make_shared<internal::Combined<T1, T2, internal::Combination::sum>>(
+      left, right, std::forward<Args>(args)...);
 }
 
 template <class T1, class T2, class... Args>
-std::shared_ptr<Product<T1, T2>> make_product(const T1& left, const T2& right, Args&&... args)
+std::shared_ptr<internal::Combined<T1, T2, internal::Combination::product>>
+make_product(const T1& left, const T2& right, Args&&... args)
 {
-  return std::make_shared<Product<T1, T2>>(left, right, std::forward<Args>(args)...);
+  return std::make_shared<internal::Combined<T1, T2, internal::Combination::product>>(
+      left, right, std::forward<Args>(args)...);
 }
 
 template <class T1, class T2, class... Args>
-std::shared_ptr<Product<T1, T2>> make_product(std::shared_ptr<T1> left, std::shared_ptr<T2> right, Args&&... args)
+std::shared_ptr<internal::Combined<T1, T2, internal::Combination::product>>
+make_product(std::shared_ptr<T1> left, std::shared_ptr<T2> right, Args&&... args)
 {
-  return std::make_shared<Product<T1, T2>>(left, right, std::forward<Args>(args)...);
+  return std::make_shared<internal::Combined<T1, T2, internal::Combination::product>>(
+      left, right, std::forward<Args>(args)...);
 }
 
 } // namespace Functions
