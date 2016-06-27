@@ -195,6 +195,31 @@ public:
   } // ... default_config(...)
 }; // class NormalBased
 
+class CoordinateBased
+{
+public:
+  static std::string static_id()
+  {
+    return internal::boundary_info_static_id() + ".coordinatebased";
+  }
+
+  static Common::Configuration default_config(const std::string sub_name = "")
+  {
+    Common::Configuration config("type", static_id());
+    config["default"] = "none";
+    config["compare_tolerance"] = "1e-10";
+    config["dirichlet.0.components"] = "[true false]";
+    config["dirichlet.0.values"]     = "[1.0 0.0]";
+    if (sub_name.empty())
+      return config;
+    else {
+      Common::Configuration tmp;
+      tmp.add(config, sub_name);
+      return tmp;
+    }
+  } // ... default_config(...)
+}; // class CoordinateBased
+
 class FunctionBased
 {
 public:
@@ -574,6 +599,151 @@ private:
   const DomainFieldType tol_;
 }; // class NormalBased
 
+
+template< class IntersectionImp >
+class CoordinateBased
+  : public Stuff::Grid::BoundaryInfoInterface< IntersectionImp >
+{
+  typedef Stuff::Grid::BoundaryInfoInterface< IntersectionImp > BaseType;
+  typedef CoordinateBased< IntersectionImp > ThisType;
+public:
+  using typename BaseType::IntersectionType;
+  using typename BaseType::DomainFieldType;
+  using typename BaseType::DomainType;
+  using typename BaseType::WorldType;
+  using BaseType::dimDomain;
+  using BaseType::dimWorld;
+
+  static std::string static_id()
+  {
+    return BoundaryInfoConfigs::CoordinateBased::static_id();
+  }
+
+  static Common::Configuration default_config(const std::string sub_name = "")
+  {
+    return BoundaryInfoConfigs::CoordinateBased::default_config(sub_name);
+  }
+
+  static std::unique_ptr< ThisType > create(const Common::Configuration config = default_config(),
+                                            const std::string sub_name = static_id())
+  {
+    const Common::Configuration cfg = config.has_sub(sub_name) ? config.sub(sub_name) : config;
+    const Common::Configuration default_cfg = default_config();
+    // get default
+    const std::string default_type = cfg.get< std::string >("default");
+    // get tolerance
+    const DomainFieldType tol = cfg.get("compare_tolerance", default_cfg.get< DomainFieldType >("compare_tolerance"));
+    // get dirichlet and neumann
+    auto dirichlets = getVectors(cfg, "dirichlet");
+    auto neumanns = getVectors(cfg, "neumann");
+    // return
+    return Common::make_unique< ThisType >(default_type, dirichlets, neumanns, tol);
+  } // ... create(...)
+
+  CoordinateBased(const std::string default_type,
+                  const std::vector<std::pair<FieldVector<bool, dimWorld>, WorldType>>& dirichlets,
+                  const std::vector<std::pair<FieldVector<bool, dimWorld>, WorldType>>& neumanns,
+                  const DomainFieldType tol = 1e-10)
+    : default_type_(default_type)
+    , dirichlets_(dirichlets)
+    , neumanns_(neumanns)
+    , tol_(tol)
+  {}
+
+  virtual ~CoordinateBased() {}
+
+  virtual bool has_dirichlet() const override final
+  {
+    return default_type_ == "dirichlet" || (dirichlets_.size() > 0);
+  }
+
+  virtual bool has_neumann() const override final
+  {
+    return default_type_ == "neumann" || (neumanns_.size() > 0);
+  }
+
+  virtual bool dirichlet(const IntersectionType& intersection) const override final
+  {
+    if (!intersection.boundary())
+      return false;
+    const WorldType center = intersection.geometry().center();
+    if (matches(center, dirichlets_))
+      return true;
+    else if (matches(center, neumanns_))
+      return false;
+    else
+      return default_type_ == "dirichlet";
+  } // ... dirichlet(...)
+
+  virtual bool neumann(const IntersectionType& intersection) const override final
+  {
+    if (!intersection.boundary())
+      return false;
+    const WorldType center = intersection.geometry().center();
+    if (matches(center, neumanns_))
+      return true;
+    else if (matches(center, dirichlets_))
+      return false;
+    else
+      return default_type_ == "dirichlet";
+  } // ... neumann(...)
+
+private:
+  static std::vector<std::pair<FieldVector<bool, dimWorld>, WorldType>> getVectors(const Common::Configuration& config, const std::string key)
+  {
+    std::vector<std::pair<FieldVector<bool, dimWorld>, WorldType>> ret;
+    if (config.has_sub(key)) {
+      bool found = true;
+      size_t counter = 0;
+      while (found) {
+        const std::string localKey = key + "." + Dune::Stuff::Common::toString(counter);
+        if (config.has_sub(localKey)) {
+          const auto local_sub = config.sub(localKey);
+          if (local_sub.has_key("components") && local_sub.has_key("values"))
+            ret.emplace_back(std::make_pair(local_sub.get<FieldVector<bool, dimWorld>>("components", dimWorld),
+                                            local_sub.get<WorldType>("values", dimWorld)));
+          else
+            found = false;
+        } else
+          found = false;
+        ++counter;
+      }
+    } else if (config.has_sub(key)) {
+      const auto local_sub = config.sub(key);
+      if (local_sub.has_key("components") && local_sub.has_key("values"))
+        ret.emplace_back(std::make_pair(local_sub.get<FieldVector<bool, dimWorld>>("components", dimWorld),
+                                        local_sub.get<WorldType>("values", dimWorld)));
+    }
+    return ret;
+  } // ... getVectors(...)
+
+  bool matches(const WorldType& center, const std::vector<std::pair<FieldVector<bool, dimWorld>, WorldType>>& vectors) const
+  {
+    for (const auto& vector : vectors) {
+      const auto& components = vector.first;
+      const auto& values = vector.second;
+      size_t failures = 0;
+      size_t measured = 0;
+      for (size_t dd = 0; dd < dimWorld; ++dd) {
+        if (components[dd]) {
+          ++measured;
+          if (Stuff::Common::FloatCmp::ne(center[dd], values[dd], tol_))
+            ++failures;
+        }
+      }
+      if (measured > 0 && failures == 0)
+        return true;
+    }
+    return false;
+  }
+
+  const std::string default_type_;
+  const std::vector<std::pair<FieldVector<bool, dimWorld>, WorldType>> dirichlets_;
+  const std::vector<std::pair<FieldVector<bool, dimWorld>, WorldType>> neumanns_;
+  const DomainFieldType tol_;
+}; // class CoordinateBased
+
+
 template <class IntersectionImp>
 class FunctionBased
   : public BoundaryInfoInterface<IntersectionImp>
@@ -738,6 +908,7 @@ public:
       , BoundaryInfos::IdBased< I >::static_id()
 #endif
       , BoundaryInfos::NormalBased< I >::static_id()
+      , BoundaryInfos::CoordinateBased< I >::static_id()
       , BoundaryInfos::FunctionBased< I >::static_id()
     };
   } // ... available(...)
@@ -755,6 +926,8 @@ public:
 #endif
     else if (type == BoundaryInfos::NormalBased< I >::static_id())
       return BoundaryInfos::NormalBased< I >::default_config(subname);
+    else if (type == BoundaryInfos::CoordinateBased< I >::static_id())
+      return BoundaryInfos::CoordinateBased< I >::default_config(subname);
     else if (type == BoundaryInfos::FunctionBased< I >::static_id())
       return BoundaryInfos::FunctionBased< I >::default_config(subname);
     else
@@ -781,6 +954,8 @@ public:
 #endif
     else if (type == BoundaryInfos::NormalBased< I >::static_id())
       return BoundaryInfos::NormalBased< I >::create(config);
+    else if (type == BoundaryInfos::CoordinateBased< I >::static_id())
+      return BoundaryInfos::CoordinateBased< I >::create(config);
     else if (type == BoundaryInfos::FunctionBased< I >::static_id())
       return BoundaryInfos::FunctionBased< I >::create(config);
     else
