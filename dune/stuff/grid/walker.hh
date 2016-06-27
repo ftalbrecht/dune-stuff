@@ -88,7 +88,7 @@ struct GridPartViewHolder< GPV, false >
 
 template< class GridViewImp >
 class Walker
-  : internal::GridPartViewHolder< GridViewImp >
+  : protected internal::GridPartViewHolder< GridViewImp >
   , public Functor::Codim0And1< GridViewImp >
 {
   typedef Walker< GridViewImp > ThisType;
